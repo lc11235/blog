@@ -2,14 +2,21 @@
 
 /**
  * Module dependencies.
+ * 第一行表明是node可执行文件
  */
 
+/**
+ * 引入app实例
+ * 引入debug模块，打印调试日志
+ * 引入http模块，用来创建服务器
+ */
 var app = require('../app');
 var debug = require('debug')('blog:server');
 var http = require('http');
 
 /**
  * Get port from environment and store in Express.
+ * 设置端口号，如果没有默认的则设置为8080
  */
 
 var port = normalizePort(process.env.PORT || '8080');

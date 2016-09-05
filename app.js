@@ -12,21 +12,33 @@ var users = require('./routes/users');
 var app = express();
 
 // view engine setup
+//设置view文件夹存放视图文件的目录，即存放模板文件的地方，__dirname为全局变量，存储当前正在执行
+//的脚本所在的目录
 app.set('views', path.join(__dirname, 'views'));
+//设置视图模板引擎为ejs
 app.set('view engine', 'ejs');
 
 // uncomment after placing your favicon in /public
+//设置/public/favicon.ico为favicon图标
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
+//加载日志中间件,日志级别为dev
 app.use(logger('dev'));
+//加载解析json的中间件
 app.use(bodyParser.json());
+//加载解析urlencoded请求体的中间件
 app.use(bodyParser.urlencoded({ extended: false }));
+//加载解析cookie的中间件
 app.use(cookieParser());
+//设置public文件夹为存放静态文件的目录。
 app.use(express.static(path.join(__dirname, 'public')));
-
-app.use('/', routes);
-app.use('/users', users);
+//路由控制器
+//app.use('/', routes);
+//app.use('/users', users);
+//将所有的路由事件都转发到路由文件处理，app.js中只保存一个总的路由接口
+routes(app);
 
 // catch 404 and forward to error handler
+//捕获404错误并转发到错误处理器
 app.use(function(req, res, next) {
   var err = new Error('Not Found');
   err.status = 404;
@@ -37,6 +49,7 @@ app.use(function(req, res, next) {
 
 // development error handler
 // will print stacktrace
+//开发环境下的错误处理器，将错误渲染到error模板并显示到浏览器中。
 if (app.get('env') === 'development') {
   app.use(function(err, req, res, next) {
     res.status(err.status || 500);
@@ -49,6 +62,7 @@ if (app.get('env') === 'development') {
 
 // production error handler
 // no stacktraces leaked to user
+//生产环境下的错误处理器，将错误信息渲染到error模板并显示到浏览器中。
 app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.render('error', {
@@ -57,5 +71,5 @@ app.use(function(err, req, res, next) {
   });
 });
 
-
+//导出2app实例供其他模块调用
 module.exports = app;
