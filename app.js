@@ -7,6 +7,10 @@ var bodyParser = require('body-parser');
 
 var routes = require('./routes/index');
 var users = require('./routes/users');
+var settings = require('./settings');//导入数据库连接
+var session = require('express-session');//导入会话支持
+var MongoStore = require('connect-mongo')(session);//导入数据库对会话的支持中间件
+var flash = require('connect-flash');//用于存储信息的特殊区域
 
 // 生成一个express实例
 var app = express();
@@ -17,6 +21,9 @@ var app = express();
 app.set('views', path.join(__dirname, 'views'));
 //设置视图模板引擎为ejs
 app.set('view engine', 'ejs');
+
+//添加flash功能
+app.use(flash());
 
 // uncomment after placing your favicon in /public
 //设置/public/favicon.ico为favicon图标
@@ -36,6 +43,20 @@ app.use(express.static(path.join(__dirname, 'public')));
 //app.use('/users', users);
 //将所有的路由事件都转发到路由文件处理，app.js中只保存一个总的路由接口
 routes(app);
+
+app.use(session({
+  secret: settings.cookieSecret,
+  key: settings.db, //cookie name
+  cookie: {maxAge: 1000*60*60*24*30}, //30 days
+  resave: false,
+  saveUninitialized: true,
+  store: new MongoStore({
+    //db: settings.db,
+    //host: settings.host,
+    //port: settings.port
+    url: 'mongodb://localhost/blog'
+  })
+}));
 
 // catch 404 and forward to error handler
 //捕获404错误并转发到错误处理器

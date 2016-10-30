@@ -1,4 +1,6 @@
 var express = require('express');
+//node.js的核心模块，用来生成散列值
+var crypto = require('crypto');
 var router = express.Router();
 
 /* GET home page. */
