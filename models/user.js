@@ -18,7 +18,7 @@ User.prototype.save = function(callback){
     };
 
     //打开数据库
-    mongodb.open(function(err, collection){
+    mongodb.open(function(err, db){
         if(err){
             return callback(err); //错误，返回err信息
         }
