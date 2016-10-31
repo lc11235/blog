@@ -100,4 +100,24 @@ module.exports = function(app) {
   app.get('/logout', function(req, res) {
 
   });
+
+  app.get('/del', function(req, res){
+    res.render('del', {
+      title: '删除'
+    });
+  });
+
+  app.post('/del', function(req, res){
+    var name = req.body.name;//取的要删除的账户的名字
+
+    User.del(name, function(err, user){
+      if(err){
+        req.flash('error', err);
+        return res.redirect('/del');
+      }
+
+      req.flash('success', '删除成功！');
+      res.redirect('/');
+    });
+  });
 };
