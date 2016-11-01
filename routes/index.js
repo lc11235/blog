@@ -1,7 +1,8 @@
 var express = require('express');
 //node.js的核心模块，用来生成散列值
 var crypto = require('crypto'),
-    User = require('../models/user.js');
+  User = require('../models/user.js'),
+  Post = require('../models/post.js');
 
 var router = express.Router();
 
@@ -18,17 +19,25 @@ var router = express.Router();
 //module.exports = router;
 
 //路由响应
-module.exports = function(app) {
-  app.get('/', function(req, res) {
-    res.render('index', {
+module.exports = function (app) {
+  app.get('/', function (req, res) {
+    Post.get(null, function(err, posts){
+      if(err){
+        posts = [];
+      }
+
+      res.render('index', {
       title: '主页',
       user: req.session.user,
+      posts: posts,
       success: req.flash('success').toString(),
       error: req.flash('error').toString()
+      });
     });
   });
 
-  app.get('/reg', function(req, res) {
+  app.get('/reg', checkNotLogin);
+  app.get('/reg', function (req, res) {
     res.render('reg', {
       title: '注册',
       user: req.session.user,
@@ -37,20 +46,21 @@ module.exports = function(app) {
     });
   });
 
-  app.post('/reg', function(req, res) {
+  app.post('/reg', checkNotLogin);
+  app.post('/reg', function (req, res) {
     var name = req.body.name,
-        password = req.body.password,
-        password_re =req.body['password-repeat'];
+      password = req.body.password,
+      password_re = req.body['password-repeat'];
 
     //检查用户两次输入的密码是否一致
-    if(password_re != password){
+    if (password_re != password) {
       req.flash('error', '两次输入输入的密码不一致！');
       return res.redirect('/reg'); //返回注册页(来自express的重定向函数)
     }
 
     //生成密码的md5值
     var md5 = crypto.createHash('md5'),
-        password = md5.update(req.body.password).digest('hex');
+      password = md5.update(req.body.password).digest('hex');
     var newUser = new User({
       name: name,
       password: password,
@@ -58,20 +68,20 @@ module.exports = function(app) {
     });
 
     //检查拥护名是否已经存在
-    User.get(newUser.name, function(err, user){
-      if(err){
+    User.get(newUser.name, function (err, user) {
+      if (err) {
         req.flash('error', err);
         return res.redirect('/');
       }
 
-      if(user){
+      if (user) {
         req.flash('error', '用户已存在！');
         return res.redirect('/reg'); //返回注册页
       }
 
       //如果不存在则新增用户
-      newUser.save(function(err, user){
-        if(err){
+      newUser.save(function (err, user) {
+        if (err) {
           req.flash('error', err);
           return res.redirect('/reg'); //注册失败返回注册页
         }
@@ -83,7 +93,8 @@ module.exports = function(app) {
     });
   });
 
-  app.get('/login', function(req, res) {
+  app.get('/login', checkNotLogin);
+  app.get('/login', function (req, res) {
     res.render('login', {
       title: '登录',
       user: req.session.user,
@@ -92,25 +103,70 @@ module.exports = function(app) {
     });
   });
 
-  app.post('/login', function(req, res) {
+  app.post('/login', checkNotLogin);
+  app.post('/login', function (req, res) {
+    //生成密码的md5值
+    var md5 = crypto.createHash('md5');
+    password = md5.update(req.body.password).digest('hex');
+    //检查用户是否存在
+    User.get(req.body.name, function (err, user) {
+      if (err) {
+        req.flash('error', err);
+        return res.redirect('/login'); //错误则回到登录页面
+      }
 
-  });
+      if (!user) {
+        req.flash('error', '用户不存在！');
+        return res.redirect('/login'); //错误则回到登录页面
+      }
 
-  app.get('/post', function(req, res) {
-    res.render('post', {
-      title: '发表'
+      //检查密码是否一致
+      if (user.password != password) {
+        req.flash('error', '密码错误！');
+        return res.redirect('/login'); //错误则回到登录页面
+      }
+
+      //用户名密码都匹配后，将用户信息存入session
+      req.session.user = user;
+      req.flash('success', '登录成功！');
+      res.redirect('/');//登录成功后跳转到主页
     });
   });
 
-  app.post('/post', function(req, res) {
-
+  app.get('/post', checkLogin);
+  app.get('/post', function (req, res) {
+    res.render('post', {
+      title: '发表',
+      user: req.session.user,
+      success: req.flash('success').toString(),
+      error: req.flash('error').toString()
+    });
   });
 
-  app.get('/logout', function(req, res) {
+  app.post('/post', checkLogin);
+  app.post('/post', function (req, res) {
+    var currentUser = req.session.user,
+      post = new Post(currentUser.name, req.body.title, req.body.post);
+    
+    post.save(function(err){
+      if(err){
+        req.flash('error', err);
+        return res.redirect('/');
+      }
 
+      req.flash('success', '发布成功！');
+      res.redirect('/'); //发表成功跳到主页
+    });
   });
 
-  app.get('/del', function(req, res){
+  app.get('/logout', checkLogin);
+  app.get('/logout', function (req, res) {
+    req.session.user = null;
+    req.flash('success', '登出成功！');
+    res.redirect('/'); //登出成功后跳转到主页
+  });
+
+  app.get('/del', function (req, res) {
     res.render('del', {
       title: '删除',
       user: req.session.user,
@@ -119,11 +175,11 @@ module.exports = function(app) {
     });
   });
 
-  app.post('/del', function(req, res){
+  app.post('/del', function (req, res) {
     var name = req.body.name;//取的要删除的账户的名字
 
-    User.del(name, function(err, user){
-      if(err){
+    User.del(name, function (err, user) {
+      if (err) {
         req.flash('error', err);
         return res.redirect('/del');
       }
@@ -132,4 +188,23 @@ module.exports = function(app) {
       res.redirect('/');
     });
   });
+
+  //检查是否登录
+  function checkLogin(req, res, next) {
+    if (!req.session.user) {
+      req.flash('error', '未登录！');
+      res.redirect('/login');
+    }
+
+    next();
+  }
+
+  function checkNotLogin(req, res, next) {
+    if (req.session.user) {
+      req.flash('error', '已登录！');
+      res.redirect('back'); //返回之前的页面
+    }
+
+    next();
+  }
 };
