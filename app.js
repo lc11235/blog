@@ -12,6 +12,7 @@ var flash = require('connect-flash');//用于存储信息的特殊区域
 var session = require('express-session');//导入会话支持
 var MongoStore = require('connect-mongo')(session);//导入数据库对会话的支持中间件
 
+
 // 生成一个express实例
 var app = express();
 
@@ -54,6 +55,7 @@ app.use(session({
 }));
 
 //添加flash功能
+//因为flash是依靠session来实现的，因此需要先使用session组件再使用Flash组件，否则会报错
 app.use(flash());
 
 //将所有的路由事件都转发到路由文件处理，app.js中只保存一个总的路由接口
@@ -93,5 +95,5 @@ app.use(function(err, req, res, next) {
   });
 });
 
-//导出2app实例供其他模块调用
+//导出app实例供其他模块调用
 module.exports = app;

@@ -5,6 +5,11 @@ var crypto = require('crypto'),
   Post = require('../models/post.js');
 
 var router = express.Router();
+var multer = require('multer'); // 导入上传组件的支持
+//dest是上传的文件所在的目录，rename函数用来修改上传后的文件名，这里设置为保持原来的文件名
+var upload = multer({
+  dest: './public/images'
+});
 
 /* GET home page. */
 /**
@@ -165,6 +170,30 @@ module.exports = function (app) {
     req.flash('success', '登出成功！');
     res.redirect('/'); //登出成功后跳转到主页
   });
+
+  app.get('/upload', checkLogin);
+  app.get('/upload', function(req, res){
+    res.render('upload', {
+      title: '文件上传',
+      user: req.session.user,
+      success: req.flash('success').toString(),
+      error: req.flash('error').toString()
+    });
+  });
+
+  app.post('/upload', upload.fields([
+    {name: 'file1'},
+    {name: 'file2'},
+    {name: 'file3'},
+    {name: 'file4'},
+    {name: 'file5'}
+    ]), function(req, res){
+      for(var i in req.files){
+        console.log(req.files[i]);
+      }
+      req.flash('success', '文件上传成功!');
+      res.redirect('/upload');
+    });
 
   app.get('/del', function (req, res) {
     res.render('del', {

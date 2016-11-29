@@ -17,6 +17,7 @@
     "mongodb": "*",
     "express-session": "~1.14.1",
     "connect-flash": "~0.1.1",
-    "markdown": "*"
+    "markdown": "*",
+    "multer": "*"
     }
 }
