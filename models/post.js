@@ -27,7 +27,8 @@ Post.prototype.save = function (callback) {
         name: this.name,
         time: time,
         title: this.title,
-        post: this.post
+        post: this.post,
+        comments: [] 
     };
 
     //打开数据库
@@ -121,8 +122,19 @@ Post.getOne = function(name, day, title, callback){
                 if(err){
                     return callback(err);
                 }
-                //解析markdown为html
-                doc.post = markdown.toHTML(doc.post);
+                //解析markdown为html,增加对留言的支持
+                if(doc){
+                    doc.post = markdown.toHTML(doc.post);
+                    console.log(doc.comments);
+                    if(Array.isArray(doc.comments))//此处有个bug，在没有值得时候他并没有被赋予为数组类型，因此不可使用数组的相关函数，但是错误似乎不止如此，EJS也有同样地方错误
+                    {
+                        doc.comments.forEach(function(comment){
+                            comment.content = markdown.toHTML(comment.content);
+                        });
+                    }
+                    
+                }
+                
                 callback(null, doc);//返回查询的一篇文章
             });
         });

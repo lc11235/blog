@@ -2,7 +2,8 @@ var express = require('express');
 //node.js的核心模块，用来生成散列值
 var crypto = require('crypto'),
   User = require('../models/user.js'),
-  Post = require('../models/post.js');
+  Post = require('../models/post.js'),
+  Comment = require('../models/comment.js');
 
 var router = express.Router();
 var multer = require('multer'); // 导入上传组件的支持
@@ -26,17 +27,17 @@ var upload = multer({
 //路由响应
 module.exports = function (app) {
   app.get('/', function (req, res) {
-    Post.getAll(null, function(err, posts){
-      if(err){
+    Post.getAll(null, function (err, posts) {
+      if (err) {
         posts = [];
       }
 
       res.render('index', {
-      title: '主页',
-      user: req.session.user,
-      posts: posts,
-      success: req.flash('success').toString(),
-      error: req.flash('error').toString()
+        title: '主页',
+        user: req.session.user,
+        posts: posts,
+        success: req.flash('success').toString(),
+        error: req.flash('error').toString()
       });
     });
   });
@@ -152,9 +153,9 @@ module.exports = function (app) {
   app.post('/post', function (req, res) {
     var currentUser = req.session.user,
       post = new Post(currentUser.name, req.body.title, req.body.post);
-    
-    post.save(function(err){
-      if(err){
+
+    post.save(function (err) {
+      if (err) {
         req.flash('error', err);
         return res.redirect('/');
       }
@@ -172,7 +173,7 @@ module.exports = function (app) {
   });
 
   app.get('/upload', checkLogin);
-  app.get('/upload', function(req, res){
+  app.get('/upload', function (req, res) {
     res.render('upload', {
       title: '文件上传',
       user: req.session.user,
@@ -182,29 +183,29 @@ module.exports = function (app) {
   });
 
   app.post('/upload', upload.fields([
-    {name: 'file1'},
-    {name: 'file2'},
-    {name: 'file3'},
-    {name: 'file4'},
-    {name: 'file5'}
-    ]), function(req, res){
-      for(var i in req.files){
-        console.log(req.files[i]);
-      }
-      req.flash('success', '文件上传成功!');
-      res.redirect('/upload');
-    });
+    { name: 'file1' },
+    { name: 'file2' },
+    { name: 'file3' },
+    { name: 'file4' },
+    { name: 'file5' }
+  ]), function (req, res) {
+    for (var i in req.files) {
+      console.log(req.files[i]);
+    }
+    req.flash('success', '文件上传成功!');
+    res.redirect('/upload');
+  });
 
-  app.get('/u/:name', function(req, res){
+  app.get('/u/:name', function (req, res) {
     //检查用户名是否已经存在
-    User.get(req.params.name, function(err, user){
-      if(!user){
+    User.get(req.params.name, function (err, user) {
+      if (!user) {
         req.flash('error', '用户名不存在！');
         return res.redirect('/');//用户不存在则跳转到主页
       }
       //查询并返回该用户的所有文章
-      Post.getAll(user.name, function(err, psots){
-        if(err){
+      Post.getAll(user.name, function (err, psots) {
+        if (err) {
           req.flash('error', err);
           return res.redirect('/');
         }
@@ -220,10 +221,10 @@ module.exports = function (app) {
     });
   });
 
-  app.get('/u/:name/:day/:title', function(req, res){
-    Post.getOne(req.params.name, req.params.day, req.params.title, function(err, post){
-      if(err){
-        req.flash('error'. err);
+  app.get('/u/:name/:day/:title', function (req, res) {
+    Post.getOne(req.params.name, req.params.day, req.params.title, function (err, post) {
+      if (err) {
+        req.flash('error'.err);
         return res.redirect('/');
       }
 
@@ -237,11 +238,36 @@ module.exports = function (app) {
     });
   });
 
-  app.get('/edit/:name/:day/:title', checkLogin);
-  app.get('/edit/:name/:day/:title', function(req, res){
-    var currentUser = req.session.user;
-    Post.edit(currentUser.name, req.params.day, req.params.title, function(err, post){
+  app.post('/u/:name/:day/:title', function (req, res) {
+    var date = new Date(),
+      time = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate() + "-" +
+        date.getHours() + ":" + (date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes());
+    
+    var comment = {
+      name: req.body.name,
+      email: req.body.email,
+      website: req.body.website,
+      time: time,
+      content: req.body.content
+    };
+
+    var newComment = new Comment(req.params.name, req.params.day, req.params.title, comment);
+    newComment.save(function(err){
       if(err){
+        req.flash('error', err);
+        return res.redirect('back');
+      }
+
+      req.flash('success', '留言成功！');
+      res.redirect('back');
+    });
+  });
+
+  app.get('/edit/:name/:day/:title', checkLogin);
+  app.get('/edit/:name/:day/:title', function (req, res) {
+    var currentUser = req.session.user;
+    Post.edit(currentUser.name, req.params.day, req.params.title, function (err, post) {
+      if (err) {
         req.flash('error', err);
         return res.redirect('back');
       }
@@ -257,11 +283,11 @@ module.exports = function (app) {
   });
 
   app.post('/edit/:name/:day/:title', checkLogin);
-  app.post('/edit/:name/:day/:title', function(req, res){
+  app.post('/edit/:name/:day/:title', function (req, res) {
     var currentUser = req.session.user;
-    Post.update(currentUser.name, req.params.day, req.params.title, req.body.post, function(err){
+    Post.update(currentUser.name, req.params.day, req.params.title, req.body.post, function (err) {
       var url = encodeURI('/u/' + req.params.name + '/' + req.params.day + '/' + req.params.title);
-      if(err){
+      if (err) {
         req.flash('error', err);
         return res.redirect(url); //出错！返回文章页
       }
@@ -271,10 +297,10 @@ module.exports = function (app) {
   });
 
   app.get('/remove/:name/:day/:title', checkLogin);
-  app.get('/remove/:name/:day/:title', function(req, res){
+  app.get('/remove/:name/:day/:title', function (req, res) {
     var currentUser = req.session.user;
-    Post.remove(currentUser.name, req.params.day, req.params.title, function(err){
-      if(err){
+    Post.remove(currentUser.name, req.params.day, req.params.title, function (err) {
+      if (err) {
         req.flash('error', err);
         return res.redirect('back');
       }
