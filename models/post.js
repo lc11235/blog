@@ -32,7 +32,8 @@ Post.prototype.save = function (callback) {
         title: this.title,
         tags: this.tags,
         post: this.post,
-        comments: []
+        comments: [],
+        pv: 0
     };
 
     //打开数据库
@@ -168,12 +169,26 @@ Post.getOne = function (name, day, title, callback) {
                 "time.day": day,
                 "title": title
             }, function (err, doc) {
-                mongodb.close();
                 if (err) {
+                    mongodb.close();
                     return callback(err);
                 }
-                //解析markdown为html,增加对留言的支持
+                
                 if (doc) {
+                    //每访问一次，pv值增加1
+                    collection.update({
+                        "name": name,
+                        "time.day":day,
+                        "title": title
+                    }, {
+                        $inc: {"pv": 1}
+                    }, function(err){
+                        mongodb.close();
+                        if(err){
+                            return callback(err);
+                        }
+                    });
+                    //解析markdown为html,增加对留言的支持
                     doc.post = markdown.toHTML(doc.post);
                     //console.log(doc.comments);
                     if (Array.isArray(doc.comments))//此处有个bug，在没有值得时候他并没有被赋予为数组类型，因此不可使用数组的相关函数，但是错误似乎不止如此，EJS也有同样地方错误
@@ -183,9 +198,8 @@ Post.getOne = function (name, day, title, callback) {
                         });
                     }
 
+                    callback(null, doc);//返回查询的一篇文章
                 }
-
-                callback(null, doc);//返回查询的一篇文章
             });
         });
     });

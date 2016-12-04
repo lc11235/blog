@@ -16,5 +16,6 @@
 <%})}%>
 </p>
 <p><%-post.post%></p>
+<p class="info">阅读：<%=post.pv%>|评论：<%=Array.isArray(post.comments)?post.comments.length:0%></p>
 <%-include comment%>
 <%-include footer%>
