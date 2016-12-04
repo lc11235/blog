@@ -44,8 +44,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 //app.use('/', routes);
 //app.use('/users', users);
 
+//最大的事件监听数，默认是10，超过10 node会报出警告
 const myEmitter = new MyEmitter();
-myEmitter.setMaxListeners(20);
+myEmitter.setMaxListeners(30);
 
 app.use(session({
   secret: settings.cookieSecret,
