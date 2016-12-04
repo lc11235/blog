@@ -10,6 +10,8 @@
  * 引入debug模块，打印调试日志
  * 引入http模块，用来创建服务器
  */
+'use strict';
+
 var app = require('../app');
 var debug = require('debug')('blog:server');
 var http = require('http');

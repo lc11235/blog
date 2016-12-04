@@ -1,3 +1,5 @@
+'use strict';
+
 var mongodb = require('./db');
 
 function Comment(name, day, title, comment){

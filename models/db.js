@@ -1,3 +1,5 @@
+'use strict';
+
 var settings = require('../settings'),
     Db = require('mongodb').Db,
     Connection = require('mongodb').Connection,
