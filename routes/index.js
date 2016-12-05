@@ -160,7 +160,7 @@ module.exports = function (app) {
   app.post('/post', function (req, res) {
     var currentUser = req.session.user,
       tags = [req.body.tag1, req.body.tag2, req.body.tag3],
-      post = new Post(currentUser.name, req.body.title, tags, req.body.post);
+      post = new Post(currentUser.name,currentUser.head, req.body.title, tags, req.body.post);
 
     post.save(function (err) {
       if (err) {
@@ -255,6 +255,23 @@ module.exports = function (app) {
     });
   });
 
+  app.get('/search', function(req, res){
+    Post.search(req.query.keyword, function(err, posts){
+      if(err){
+        req.flash('error', err);
+        return res.redirect('/');
+      }
+
+      res.render('search', {
+        title: "SEARCH:" + req.query.keyword,
+        posts: posts,
+        user: req.session.user,
+        success: req.flash('success').toString(),
+        error: req.flash('error').toString()
+      });
+    });
+  });
+
   app.get('/u/:name', function (req, res) {
     var page = req.query.p ? parseInt(req.query.p) : 1;
     //检查用户名是否已经存在
@@ -306,8 +323,13 @@ module.exports = function (app) {
       time = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate() + "-" +
         date.getHours() + ":" + (date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes());
 
+    var md5 = crypto.createHash('md5');
+        email_MD5 = md5.update(this.email.toLowerCase()).digest('hex'),
+        head = "http://www.gravatar.com/avatar/" + email_MD5 + "?s=48";
+
     var comment = {
       name: req.body.name,
+      head: head,
       email: req.body.email,
       website: req.body.website,
       time: time,
@@ -393,6 +415,11 @@ module.exports = function (app) {
       req.flash('success', '删除成功！');
       res.redirect('/');
     });
+  });
+
+  //404页面
+  app.use(function(req, res){
+    res.render("404");
   });
 
   //检查是否登录
