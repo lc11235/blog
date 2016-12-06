@@ -119,7 +119,7 @@ module.exports = function (app) {
   app.post('/login', checkNotLogin);
   app.post('/login', function (req, res) {
     //生成密码的md5值
-    var md5 = crypto.createHash('md5');
+    var md5 = crypto.createHash('md5'),
     password = md5.update(req.body.password).digest('hex');
     //检查用户是否存在
     User.get(req.body.name, function (err, user) {
@@ -391,6 +391,35 @@ module.exports = function (app) {
       }
       req.flash('success', '删除成功！');
       res.redirect('/');
+    });
+  });
+
+  app.get('/reprint/:name/:day/:title', checkLogin);
+  app.get('/reprint/:name/:day/:title', function(req, res){
+    //转载的文章需要通过此函数返回一篇文章markdown格式的文本，不是getOne返回一篇转义后的HTML文本
+    //因为我们还要将修改后的文档存入数据库，而数据库中应该存储markdown格式的文本
+    Post.edit(req.params.name, req.params.day, req.params.title, function(err, post){
+      if(err){
+        req.flash('error', err);
+        return res.redirect('back');
+      }
+
+      var currentUser = req.session.user,
+          reprint_from = {name: post.name, day: post.time.day, title: post.title},
+          reprint_to = {name: currentUser.name, head: currentUser.head};
+      
+      Post.reprint(reprint_from, reprint_to, function(err, post){
+        if(err){
+          req.flash('error', err);
+          return res.redirect('back');
+        }
+
+        //console.log(post);
+        req.flash('success', '转载成功！');
+        var url = encodeURI('/u/' + post.name + '/' + post.time.day + '/' + post.title);
+        //跳转到转载后的文章页面
+        res.redirect(url);
+      });
     });
   });
 

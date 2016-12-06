@@ -10,9 +10,25 @@
         <a class="tag" href="/tags/<%=tag%>"><%=tag%></a>
     <%}%>
 <%})}%>
+<% if (post.reprint_info != undefined) { %>
+    <%if(post.reprint_info.reprint_from){%>
+        <br><a href="/u/<%= post.reprint_info.reprint_from.name %>/<%= post.reprint_info.reprint_from.day %>/<%= post.reprint_info.reprint_from.title%>">原文</a>
+    <% } %>
+<% } %>
 </p>
 <p><%-post.post%></p>
-<p class="info">阅读：<%=post.pv%>|评论：<%=Array.isArray(post.comments)?post.comments.length:0%></p>
+<p class="info">阅读：<%=post.pv%>|
+    评论：<%=Array.isArray(post.comments)?post.comments.length:0%>|
+    转载：<%if(post.reprint_info != undefined){%>
+            <%if(post.reprint_info.reprint_to){%>
+                <%=post.reprint_info.reprint_to.length%>
+            <%}else{%>
+                <%=0%>
+            <%}%>
+        <%} else{%>
+            <%=0%>
+        <%}%>
+</p>
 <%})%>
 <%-include paging%>
 <%-include footer%>
