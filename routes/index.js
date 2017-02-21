@@ -120,7 +120,7 @@ module.exports = function (app) {
   app.post('/login', function (req, res) {
     //生成密码的md5值
     var md5 = crypto.createHash('md5'),
-    password = md5.update(req.body.password).digest('hex');
+      password = md5.update(req.body.password).digest('hex');
     //检查用户是否存在
     User.get(req.body.name, function (err, user) {
       if (err) {
@@ -160,7 +160,7 @@ module.exports = function (app) {
   app.post('/post', function (req, res) {
     var currentUser = req.session.user,
       tags = [req.body.tag1, req.body.tag2, req.body.tag3],
-      post = new Post(currentUser.name,currentUser.head, req.body.title, tags, req.body.post);
+      post = new Post(currentUser.name, currentUser.head, req.body.title, tags, req.body.post);
 
     post.save(function (err) {
       if (err) {
@@ -204,9 +204,9 @@ module.exports = function (app) {
     res.redirect('/upload');
   });
 
-  app.get('/archive', function(req, res){
-    Post.getArchive(function(err, posts){
-      if(err){
+  app.get('/archive', function (req, res) {
+    Post.getArchive(function (err, posts) {
+      if (err) {
         req.flash('error', err);
         return res.redirect('/');
       }
@@ -221,9 +221,9 @@ module.exports = function (app) {
     });
   });
 
-  app.get('/tags', function(req, res){
-    Post.getTags(function(err, posts){
-      if(err){
+  app.get('/tags', function (req, res) {
+    Post.getTags(function (err, posts) {
+      if (err) {
         req.flash('error', err);
         return res.redirect('/');
       }
@@ -238,9 +238,9 @@ module.exports = function (app) {
     });
   });
 
-  app.get('/tags/:tag', function(req, res){
-    Post.getTag(req.params.tag, function(err, posts){
-      if(err){
+  app.get('/tags/:tag', function (req, res) {
+    Post.getTag(req.params.tag, function (err, posts) {
+      if (err) {
         req.flash('error', err);
         return res.redirect('/');
       }
@@ -250,14 +250,14 @@ module.exports = function (app) {
         posts: posts,
         user: req.session.user,
         success: req.flash('success').toString(),
-        error: req.flash('error').toString() 
+        error: req.flash('error').toString()
       });
     });
   });
 
-  app.get('/search', function(req, res){
-    Post.search(req.query.keyword, function(err, posts){
-      if(err){
+  app.get('/search', function (req, res) {
+    Post.search(req.query.keyword, function (err, posts) {
+      if (err) {
         req.flash('error', err);
         return res.redirect('/');
       }
@@ -324,8 +324,8 @@ module.exports = function (app) {
         date.getHours() + ":" + (date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes());
 
     var md5 = crypto.createHash('md5');
-        email_MD5 = md5.update(this.email.toLowerCase()).digest('hex'),
-        head = "http://www.gravatar.com/avatar/" + email_MD5 + "?s=48";
+    email_MD5 = md5.update(this.email.toLowerCase()).digest('hex'),
+      head = "http://www.gravatar.com/avatar/" + email_MD5 + "?s=48";
 
     var comment = {
       name: req.body.name,
@@ -395,21 +395,21 @@ module.exports = function (app) {
   });
 
   app.get('/reprint/:name/:day/:title', checkLogin);
-  app.get('/reprint/:name/:day/:title', function(req, res){
+  app.get('/reprint/:name/:day/:title', function (req, res) {
     //转载的文章需要通过此函数返回一篇文章markdown格式的文本，不是getOne返回一篇转义后的HTML文本
     //因为我们还要将修改后的文档存入数据库，而数据库中应该存储markdown格式的文本
-    Post.edit(req.params.name, req.params.day, req.params.title, function(err, post){
-      if(err){
+    Post.edit(req.params.name, req.params.day, req.params.title, function (err, post) {
+      if (err) {
         req.flash('error', err);
         return res.redirect('back');
       }
 
       var currentUser = req.session.user,
-          reprint_from = {name: post.name, day: post.time.day, title: post.title},
-          reprint_to = {name: currentUser.name, head: currentUser.head};
-      
-      Post.reprint(reprint_from, reprint_to, function(err, post){
-        if(err){
+        reprint_from = { name: post.name, day: post.time.day, title: post.title },
+        reprint_to = { name: currentUser.name, head: currentUser.head };
+
+      Post.reprint(reprint_from, reprint_to, function (err, post) {
+        if (err) {
           req.flash('error', err);
           return res.redirect('back');
         }
@@ -447,7 +447,7 @@ module.exports = function (app) {
   });
 
   //404页面
-  app.use(function(req, res){
+  app.use(function (req, res) {
     res.render("404");
   });
 
