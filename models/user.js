@@ -3,7 +3,7 @@
 var mongodb = require('./db');
 var crypto = require('crypto');
 
-function User(user){
+function User(user) {
     this.name = user.name;
     this.password = user.password;
     this.email = user.email;
@@ -12,11 +12,11 @@ function User(user){
 module.exports = User;
 
 //存储用户信息
-User.prototype.save = function(callback){
+User.prototype.save = function (callback) {
     var md5 = crypto.createHash('md5'),
         email_MD5 = md5.update(this.email.toLowerCase()).digest('hex'),
         head = "http://www.gravatar.com/avatar/" + email_MD5 + "?s=48";
-//要存入数据库的用户文档
+    //要存入数据库的用户文档
     var user = {
         name: this.name,
         password: this.password,
@@ -25,14 +25,14 @@ User.prototype.save = function(callback){
     };
 
     //打开数据库
-    mongodb.open(function(err, db){
-        if(err){
+    mongodb.open(function (err, db) {
+        if (err) {
             return callback(err); //错误，返回err信息
         }
 
         //读取users集合
-        db.collection('users', function(err, collection){
-            if(err){
+        db.collection('users', function (err, collection) {
+            if (err) {
                 mongodb.close();
                 return callback(err);//关闭数据库连接，返回错误信息
             }
@@ -40,9 +40,9 @@ User.prototype.save = function(callback){
             //将用户数据插入users集合
             collection.insert(user, {
                 safe: true
-            }, function(err, user){
+            }, function (err, user) {
                 mongodb.close();
-                if(err){
+                if (err) {
                     return callback(err); //错误，返回错误信息
                 }
 
@@ -53,16 +53,16 @@ User.prototype.save = function(callback){
 };
 
 //读取用户信息
-User.get = function(name, callback){
+User.get = function (name, callback) {
     //打开数据库
-    mongodb.open(function(err, db){
-        if(err){
+    mongodb.open(function (err, db) {
+        if (err) {
             return callback(err); //错误，返回err信息
         }
 
         //读取users集合
-        db.collection('users', function(err, collection){
-            if(err){
+        db.collection('users', function (err, collection) {
+            if (err) {
                 mongodb.close();
                 return callback(err);
             }
@@ -70,9 +70,9 @@ User.get = function(name, callback){
             //查找用户名为（那么键）值为name的一个文档
             collection.findOne({
                 name: name
-            }, function(err, user){
+            }, function (err, user) {
                 mongodb.close();
-                if(err){
+                if (err) {
                     return callback(err); //失败！返回err信息
                 }
 
@@ -83,16 +83,16 @@ User.get = function(name, callback){
 };
 
 //删除用户信息
-User.del = function(name, callback){
+User.del = function (name, callback) {
     //打开数据库
-    mongodb.open(function(err, db){
-        if(err){
+    mongodb.open(function (err, db) {
+        if (err) {
             return callback(err); //错误，返回err信息
         }
 
         //读取users集合
-        db.collection('users', function(err, collection){
-            if(err){
+        db.collection('users', function (err, collection) {
+            if (err) {
                 mongodb.close();
                 return callback(err);
             }
@@ -100,9 +100,9 @@ User.del = function(name, callback){
             //删除所有值为name的文档
             collection.deleteMany({
                 name: name
-            }, function(err, user){
+            }, function (err, user) {
                 mongodb.close();
-                if(err){
+                if (err) {
                     return callback(err);
                 }
 

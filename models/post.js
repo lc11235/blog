@@ -14,7 +14,7 @@ function Post(name, head, title, tags, post) {
 module.exports = Post;
 
 //存储一篇文章及其相关信息
-Post.prototype.save = function(callback) {
+Post.prototype.save = function (callback) {
     var date = new Date();
     //存储各种时间格式，方便以后扩展
     var time = {
@@ -54,13 +54,13 @@ Post.prototype.save = function(callback) {
     };
 
     //打开数据库
-    mongodb.open(function(err, db) {
+    mongodb.open(function (err, db) {
         if (err) {
             return callback(err);
         }
 
         //读取posts集合
-        db.collection('posts', function(err, collection) {
+        db.collection('posts', function (err, collection) {
             if (err) {
                 mongodb.close();
                 return callback(err);
@@ -69,7 +69,7 @@ Post.prototype.save = function(callback) {
             //将文档插入posts集合
             collection.insert(post, {
                 safe: true
-            }, function(err) {
+            }, function (err) {
                 mongodb.close();
                 if (err) {
                     return callback(err); //失败！返回err
@@ -82,15 +82,15 @@ Post.prototype.save = function(callback) {
 };
 
 //读取所有文章及其相关信息
-Post.getAll = function(name, callback) {
+Post.getAll = function (name, callback) {
     //打开数据库
-    mongodb.open(function(err, db) {
+    mongodb.open(function (err, db) {
         if (err) {
             return callback(err);
         }
 
         //读取posts集合
-        db.collection('posts', function(err, collection) {
+        db.collection('posts', function (err, collection) {
             if (err) {
                 mongodb.close();
                 return callback(err);
@@ -104,14 +104,14 @@ Post.getAll = function(name, callback) {
             //根据query对象查询文章
             collection.find(query).sort({
                 time: -1
-            }).toArray(function(err, docs) {
+            }).toArray(function (err, docs) {
                 mongodb.close();
                 if (err) {
                     return callback(err); //失败！返回err
                 }
 
                 //解析markdown为html
-                docs.forEach(function(doc) {
+                docs.forEach(function (doc) {
                     doc.post = markdown.toHTML(doc.post);
                 });
 
@@ -122,15 +122,15 @@ Post.getAll = function(name, callback) {
 };
 
 //读取十篇文章及其相关信息
-Post.getTen = function(name, page, callback) {
+Post.getTen = function (name, page, callback) {
     //打开数据库
-    mongodb.open(function(err, db) {
+    mongodb.open(function (err, db) {
         if (err) {
             return callback(err);
         }
 
         //读取posts集合
-        db.collection('posts', function(err, collection) {
+        db.collection('posts', function (err, collection) {
             if (err) {
                 mongodb.close();
                 return callback(err);
@@ -142,21 +142,21 @@ Post.getTen = function(name, page, callback) {
             }
 
             //使用count返回特定查询的文档数total
-            collection.count(query, function(err, total) {
+            collection.count(query, function (err, total) {
                 //根据query对象查询，并跳过前(page - 1)*10个结果，返回之后的10个结果
                 collection.find(query, {
                     skip: (page - 1) * 10,
                     limit: 10
                 }).sort({
                     time: -1
-                }).toArray(function(err, docs) {
+                }).toArray(function (err, docs) {
                     mongodb.close();
                     if (err) {
                         return callback(err); //失败！返回err
                     }
 
                     //解析markdown为html
-                    docs.forEach(function(doc) {
+                    docs.forEach(function (doc) {
                         doc.post = markdown.toHTML(doc.post);
                     });
 
@@ -168,14 +168,14 @@ Post.getTen = function(name, page, callback) {
 };
 
 //获取一篇文章
-Post.getOne = function(name, day, title, callback) {
+Post.getOne = function (name, day, title, callback) {
     //打开数据库
-    mongodb.open(function(err, db) {
+    mongodb.open(function (err, db) {
         if (err) {
             return callback(err);
         }
         //读取posts集合
-        db.collection('posts', function(err, collection) {
+        db.collection('posts', function (err, collection) {
             if (err) {
                 mongodb.close();
                 return callback(err);
@@ -185,7 +185,7 @@ Post.getOne = function(name, day, title, callback) {
                 "name": name,
                 "time.day": day,
                 "title": title
-            }, function(err, doc) {
+            }, function (err, doc) {
                 if (err) {
                     mongodb.close();
                     return callback(err);
@@ -199,7 +199,7 @@ Post.getOne = function(name, day, title, callback) {
                         "title": title
                     }, {
                             $inc: { "pv": 1 }
-                        }, function(err) {
+                        }, function (err) {
                             mongodb.close();
                             if (err) {
                                 return callback(err);
@@ -210,7 +210,7 @@ Post.getOne = function(name, day, title, callback) {
                     //console.log(doc.comments);
                     if (Array.isArray(doc.comments))//此处有个bug，在没有值得时候他并没有被赋予为数组类型，因此不可使用数组的相关函数，但是错误似乎不止如此，EJS也有同样地方错误
                     {
-                        doc.comments.forEach(function(comment) {
+                        doc.comments.forEach(function (comment) {
                             comment.content = markdown.toHTML(comment.content);
                         });
                     }
@@ -223,14 +223,14 @@ Post.getOne = function(name, day, title, callback) {
 };
 
 //返回原始发表的内容（markdown格式）
-Post.edit = function(name, day, title, callback) {
+Post.edit = function (name, day, title, callback) {
     //打开数据库
-    mongodb.open(function(err, db) {
+    mongodb.open(function (err, db) {
         if (err) {
             return callback(err);
         }
         //读取posts集合
-        db.collection('posts', function(err, collection) {
+        db.collection('posts', function (err, collection) {
             if (err) {
                 mongodb.close();
                 return callback(err);
@@ -241,7 +241,7 @@ Post.edit = function(name, day, title, callback) {
                 "name": name,
                 "time.day": day,
                 "title": title
-            }, function(err, doc) {
+            }, function (err, doc) {
                 mongodb.close();
                 if (err) {
                     return callback(err);
@@ -253,15 +253,15 @@ Post.edit = function(name, day, title, callback) {
 };
 
 //更新一篇文章及其相关信息
-Post.update = function(name, day, title, post, callback) {
+Post.update = function (name, day, title, post, callback) {
     //打开数据库
-    mongodb.open(function(err, db) {
+    mongodb.open(function (err, db) {
         if (err) {
             return callback(err);
         }
 
         //读取posts集合
-        db.collection('posts', function(err, collection) {
+        db.collection('posts', function (err, collection) {
             if (err) {
                 return callback(err);
             }
@@ -272,7 +272,7 @@ Post.update = function(name, day, title, post, callback) {
                 "title": title
             }, {
                     $set: { post: post }
-                }, function(err) {
+                }, function (err) {
                     mongodb.close();
                     if (err) {
                         return callback(err);
@@ -284,14 +284,14 @@ Post.update = function(name, day, title, post, callback) {
 };
 
 //删除一篇文章
-Post.remove = function(name, day, title, callback) {
+Post.remove = function (name, day, title, callback) {
     //打开数据库
-    mongodb.open(function(err, db) {
+    mongodb.open(function (err, db) {
         if (err) {
             return callback(err);
         }
         //读取posts集合
-        db.collection('posts', function(err, collection) {
+        db.collection('posts', function (err, collection) {
             if (err) {
                 mongodb.close();
                 return callback(err);
@@ -302,38 +302,38 @@ Post.remove = function(name, day, title, callback) {
                 "name": name,
                 "time.day": day,
                 "title": title
-            }, function(err, doc){
-                if(err){
+            }, function (err, doc) {
+                if (err) {
                     mongodb.close();
                     return callback(err);
                 }
 
                 //如果有reprint_from，即该文章是转载来的，先保存下来reprint_from
                 var reprint_from = "";
-                if(doc.reprint_info.reprint_from){
+                if (doc.reprint_info.reprint_from) {
                     reprint_from = doc.reprint_info.reprint_from;
                 }
 
-                if(reprint_from !=""){
+                if (reprint_from != "") {
                     //更新原文章所在文档的reprint_to
                     collection.update({
                         "name": reprint_from.name,
                         "time.day": reprint_from.day,
                         "title": reprint_from.title
                     }, {
-                        $pull: {
-                            "reprint_info.reprint_to": {
-                                "name": name,
-                                "day": day,
-                                "title": title
+                            $pull: {
+                                "reprint_info.reprint_to": {
+                                    "name": name,
+                                    "day": day,
+                                    "title": title
+                                }
                             }
-                        }
-                    }, function(err){
-                        if(err){
-                            mongodb.close();
-                            return callback(err);
-                        }
-                    });
+                        }, function (err) {
+                            if (err) {
+                                mongodb.close();
+                                return callback(err);
+                            }
+                        });
                 }
 
                 //根据用户名、日期和标题查找并删除一篇文章
@@ -342,30 +342,30 @@ Post.remove = function(name, day, title, callback) {
                     "time.day": day,
                     "title": title
                 }, {
-                    w: 1
-                }, function(err) {
-                    mongodb.close();
-                    if (err) {
-                        return callback(err);
-                    }
+                        w: 1
+                    }, function (err) {
+                        mongodb.close();
+                        if (err) {
+                            return callback(err);
+                        }
 
-                    callback(null);
-                });
-            });           
+                        callback(null);
+                    });
+            });
         });
     });
 };
 
 //返回所有文章的存档信息
-Post.getArchive = function(callback) {
+Post.getArchive = function (callback) {
     //打开数据库
-    mongodb.open(function(err, db) {
+    mongodb.open(function (err, db) {
         if (err) {
             return callback(err);
         }
 
         //读取posts集合
-        db.collection('posts', function(err, collection) {
+        db.collection('posts', function (err, collection) {
             if (err) {
                 mongodb.close();
                 return callback(err);
@@ -378,7 +378,7 @@ Post.getArchive = function(callback) {
                 "title": 1
             }).sort({
                 time: -1
-            }).toArray(function(err, docs) {
+            }).toArray(function (err, docs) {
                 mongodb.close();
                 if (err) {
                     return callback(err);
@@ -391,20 +391,20 @@ Post.getArchive = function(callback) {
 };
 
 //返回所有书签
-Post.getTags = function(callback) {
-    mongodb.open(function(err, db) {
+Post.getTags = function (callback) {
+    mongodb.open(function (err, db) {
         if (err) {
             return callback(err);
         }
 
-        db.collection('posts', function(err, collection) {
+        db.collection('posts', function (err, collection) {
             if (err) {
                 mongodb.close();
                 return callback(err);
             }
 
             //distinct 用来找出给定键的所有不同值
-            collection.distinct('tags', function(err, docs) {
+            collection.distinct('tags', function (err, docs) {
                 mongodb.close();
 
                 if (err) {
@@ -418,13 +418,13 @@ Post.getTags = function(callback) {
 };
 
 //返回含有特定标签的所有文章
-Post.getTag = function(tag, callback) {
-    mongodb.open(function(err, db) {
+Post.getTag = function (tag, callback) {
+    mongodb.open(function (err, db) {
         if (err) {
             return callback(err);
         }
 
-        db.collection('posts', function(err, collection) {
+        db.collection('posts', function (err, collection) {
             if (err) {
                 mongodb.close();
                 return callback(err);
@@ -439,7 +439,7 @@ Post.getTag = function(tag, callback) {
                     "title": 1
                 }).sort({
                     time: -1
-                }).toArray(function(err, docs) {
+                }).toArray(function (err, docs) {
                     mongodb.close();
                     if (err) {
                         return callback(err);
@@ -452,13 +452,13 @@ Post.getTag = function(tag, callback) {
 };
 
 //返回通过标题关键字查询的所有文章信息
-Post.search = function(keyword, callback) {
-    mongodb.open(function(err, db) {
+Post.search = function (keyword, callback) {
+    mongodb.open(function (err, db) {
         if (err) {
             return callback(err);
         }
 
-        db.collection('posts', function(err, collection) {
+        db.collection('posts', function (err, collection) {
             if (err) {
                 mongodb.close();
                 return callback(err);
@@ -473,7 +473,7 @@ Post.search = function(keyword, callback) {
                     "title": 1
                 }).sort({
                     time: -1
-                }).toArray(function(err, docs) {
+                }).toArray(function (err, docs) {
                     mongodb.close();
                     if (err) {
                         return callback(err);
@@ -486,13 +486,13 @@ Post.search = function(keyword, callback) {
 };
 
 //转载一篇文章
-Post.reprint = function(reprint_from, reprint_to, callback) {
-    mongodb.open(function(err, db) {
+Post.reprint = function (reprint_from, reprint_to, callback) {
+    mongodb.open(function (err, db) {
         if (err) {
             return callback(err);
         }
 
-        db.collection('posts', function(err, collection) {
+        db.collection('posts', function (err, collection) {
             if (err) {
                 mongodb.close();
                 return callback(err);
@@ -503,7 +503,7 @@ Post.reprint = function(reprint_from, reprint_to, callback) {
                 "name": reprint_from.name,
                 "time.day": reprint_from.day,
                 "title": reprint_from.title
-            }, function(err, doc) {
+            }, function (err, doc) {
                 if (err) {
                     mongodb.close();
                     return callback(err);
@@ -526,7 +526,7 @@ Post.reprint = function(reprint_from, reprint_to, callback) {
                 doc.time = time;
                 doc.title = (doc.title.search(/[转载]/) > -1) ? doc.title : "[转载]" + doc.title;
                 doc.comments = [];
-                doc.reprint_info = {"reprint_from": reprint_from};
+                doc.reprint_info = { "reprint_from": reprint_from };
                 doc.pv = 0;
 
                 //更新被转载的原文档的reprint_info内的reprint_to
@@ -535,26 +535,26 @@ Post.reprint = function(reprint_from, reprint_to, callback) {
                     "time.day": reprint_from.day,
                     "title": reprint_from.title
                 }, {
-                    $push:{
-                        "reprint_info.reprint_to":{
-                            "name": doc.name,
-                            "day": time.day,
-                            "title": doc.title
+                        $push: {
+                            "reprint_info.reprint_to": {
+                                "name": doc.name,
+                                "day": time.day,
+                                "title": doc.title
+                            }
                         }
-                    }
-                }, function(err){
-                    if(err){
-                        mongodb.close();
-                        return callback(err);
-                    }
-                });
+                    }, function (err) {
+                        if (err) {
+                            mongodb.close();
+                            return callback(err);
+                        }
+                    });
 
                 //将转载生成的副本修改后存入数据库，并返回存储后的文档
                 collection.insert(doc, {
                     safe: true
-                }, function(err, post){
+                }, function (err, post) {
                     mongodb.close();
-                    if(err){
+                    if (err) {
                         return callback(err);
                     }
 

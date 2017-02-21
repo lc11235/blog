@@ -2,7 +2,7 @@
 
 var mongodb = require('./db');
 
-function Comment(name, day, title, comment){
+function Comment(name, day, title, comment) {
     this.name = name;
     this.day = day;
     this.title = title;
@@ -12,21 +12,21 @@ function Comment(name, day, title, comment){
 module.exports = Comment;
 
 //存储一条留言信息
-Comment.prototype.save = function(callback){
+Comment.prototype.save = function (callback) {
     var name = this.name,
         day = this.day,
         title = this.title,
         comment = this.comment;
     //打开数据库
-    mongodb.open(function(err, db){
-        if(err){
+    mongodb.open(function (err, db) {
+        if (err) {
             return callback(err);
         }
         //读取posts集合
-        db.collection('posts', function(err, collection){
-            if(err){
-               mongodb.close();
-               return callback(err); 
+        db.collection('posts', function (err, collection) {
+            if (err) {
+                mongodb.close();
+                return callback(err);
             }
 
             //通过用户名、时间和标题查找文档，并把一条留言添加到该文档的comments数组里
@@ -35,15 +35,15 @@ Comment.prototype.save = function(callback){
                 "time.day": day,
                 "title": title
             }, {
-                $push: {"comments": comment}
-            }, function(err){
-                mongodb.close();
-                if(err){
-                    return callback(err);
-                }
+                    $push: { "comments": comment }
+                }, function (err) {
+                    mongodb.close();
+                    if (err) {
+                        return callback(err);
+                    }
 
-                callback(null);
-            });
+                    callback(null);
+                });
         });
     });
 };
